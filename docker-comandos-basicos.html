@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comandos Básicos de Docker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --neon-blue: #58a6ff;
+      --neon-purple: #7c5cfc;
+      --neon-green: #3fb950;
+      --neon-pink: #f778ba;
+      --neon-cyan: #39d2c0;
+      --glow-blue: 0 0 20px rgba(88, 166, 255, 0.15);
+      --glow-purple: 0 0 20px rgba(124, 92, 252, 0.15);
+      --glow-green: 0 0 20px rgba(63, 185, 80, 0.15);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 2rem 1rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding: 2.5rem 1.5rem 2rem;
+      background: linear-gradient(135deg, #161b22 0%, #1c2128 50%, #161b22 100%);
+      border: 1px solid #30363d;
+      border-radius: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #3fb950, #58a6ff, #7c5cfc, #f778ba, #39d2c0, #3fb950);
+      background-size: 400% 100%;
+      animation: gradientMove 6s ease infinite;
+      filter: blur(1px);
+      box-shadow: 0 0 15px rgba(88, 166, 255, 0.3), 0 0 30px rgba(124, 92, 252, 0.15);
+    }
+
+    @keyframes neonGlow {
+      0% { box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); }
+      100% { box-shadow: 0 0 25px rgba(124, 92, 252, 0.5); }
+    }
+
+    @keyframes gradientMove {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(88, 166, 255, 0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .header-logo .docker-icon {
+      font-size: 2.8rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px rgba(88, 166, 255, 0.3));
+      animation: iconGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes iconGlow {
+      0% { filter: drop-shadow(0 0 8px rgba(88, 166, 255, 0.3)); }
+      100% { filter: drop-shadow(0 0 18px rgba(88, 166, 255, 0.5)) drop-shadow(0 0 30px rgba(124, 92, 252, 0.2)); }
+    }
+
+    .header-logo .title-group {
+      text-align: left;
+    }
+
+    .header-logo .title-group h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #58a6ff 0%, #7c5cfc 50%, #d2a8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    .header-logo .title-group .subtitle-line {
+      font-size: 0.8rem;
+      color: #8b949e;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .header-author {
+      margin-top: 0.8rem;
+      font-size: 0.82rem;
+      color: #8b949e;
+    }
+
+    .header-author strong {
+      color: #58a6ff;
+      font-weight: 600;
+    }
+
+    .search-box {
+      position: relative;
+      max-width: 500px;
+      margin: 1.5rem auto 0;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 3rem;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: #161b22;
+      color: #c9d1d9;
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: #58a6ff;
+      box-shadow: 0 0 15px rgba(88, 166, 255, 0.12), inset 0 0 15px rgba(88, 166, 255, 0.03);
+    }
+
+    .search-box .icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8b949e;
+      font-size: 1.2rem;
+    }
+
+    .filter-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      border-color: #58a6ff;
+      color: #58a6ff;
+    }
+
+    .filter-btn.active {
+      background: #58a6ff;
+      color: #0d1117;
+      border-color: #58a6ff;
+      font-weight: 600;
+      box-shadow: 0 0 15px rgba(88, 166, 255, 0.25);
+    }
+
+    .filter-btn .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.3rem;
+    }
+
+    .dot-beginner { background: #3fb950; box-shadow: 0 0 6px rgba(63, 185, 80, 0.5); }
+    .dot-intermediate { background: #d29922; box-shadow: 0 0 6px rgba(210, 153, 34, 0.5); }
+    .dot-advanced { background: #f85149; box-shadow: 0 0 6px rgba(248, 81, 73, 0.5); }
+
+    .category {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      margin-bottom: 1.8rem;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .category:not(.collapsed) {
+      border-color: rgba(88, 166, 255, 0.25);
+      box-shadow: 0 0 18px rgba(88, 166, 255, 0.06), inset 0 0 18px rgba(88, 166, 255, 0.02);
+    }
+
+    .category-header {
+      background: #1c2128;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .category-header:hover {
+      background: #21262d;
+    }
+
+    .category-header h2 {
+      font-size: 1.3rem;
+      color: #f0f6fc;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .category-header h2 .icon-glow {
+      font-size: 1.5rem;
+      transition: transform 0.3s, filter 0.3s;
+      display: inline-block;
+    }
+
+    .category-header:hover h2 .icon-glow {
+      transform: scale(1.15);
+      filter: brightness(1.3) drop-shadow(0 0 6px rgba(88, 166, 255, 0.4));
+    }
+
+    .category-header .badge {
+      background: #58a6ff;
+      color: #0d1117;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.3);
+    }
+
+    .toggle-icon {
+      font-size: 1.1rem;
+      color: #8b949e;
+      transition: transform 0.25s;
+    }
+
+    .category.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .category.collapsed .commands-table {
+      display: none;
+    }
+
+    .commands-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .commands-table th {
+      background: #0d1117;
+      color: #8b949e;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1.5rem;
+      text-align: left;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .commands-table td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #21262d;
+      vertical-align: top;
+    }
+
+    .commands-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .commands-table tr:hover td {
+      background: #1c2128;
+    }
+
+    .command-code {
+      background: #0d1117;
+      color: #7ee787;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      border: 1px solid #30363d;
+      display: inline-block;
+      box-shadow: 0 0 8px rgba(126, 231, 135, 0.06);
+    }
+
+    .command-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+
+    .copy-btn:hover {
+      border-color: #58a6ff;
+      color: #58a6ff;
+      background: #1c2128;
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.15);
+    }
+
+    .copy-btn.copied {
+      border-color: #3fb950;
+      color: #3fb950;
+    }
+
+    .command-desc {
+      color: #c9d1d9;
+      font-size: 0.92rem;
+      line-height: 1.7;
+      padding: 0.2rem 0 0.2rem 1rem;
+      border-left: 2.5px solid #30363d;
+      transition: border-color 0.25s, background 0.25s;
+      position: relative;
+    }
+
+    tr:hover .command-desc {
+      border-left-color: #58a6ff;
+      border-image: linear-gradient(to bottom, #58a6ff, #7c5cfc) 1;
+      border-left-style: solid;
+    }
+
+    .command-desc .desc-icon {
+      position: absolute;
+      left: -0.5rem;
+      top: 0.3rem;
+      font-size: 0.5rem;
+      color: #58a6ff;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    tr:hover .command-desc .desc-icon {
+      opacity: 1;
+    }
+
+    .command-desc .desc-text {
+      display: inline;
+    }
+
+    .command-desc .highlight {
+      color: #58a6ff;
+      font-weight: 600;
+    }
+
+    .command-desc .desc-head {
+      display: block;
+      font-weight: 600;
+      color: #f0f6fc;
+      margin-bottom: 0.25rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .level-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    .level-beginner {
+      background: #3fb95022;
+      color: #3fb950;
+      border: 1px solid #3fb95055;
+    }
+
+    .level-beginner:hover {
+      box-shadow: 0 0 10px rgba(63, 185, 80, 0.2);
+    }
+
+    .level-intermediate {
+      background: #d2992222;
+      color: #d29922;
+      border: 1px solid #d2992255;
+    }
+
+    .level-intermediate:hover {
+      box-shadow: 0 0 10px rgba(210, 153, 34, 0.2);
+    }
+
+    .level-advanced {
+      background: #f8514922;
+      color: #f85149;
+      border: 1px solid #f8514955;
+    }
+
+    .level-advanced:hover {
+      box-shadow: 0 0 10px rgba(248, 81, 73, 0.2);
+    }
+
+    .action-btns {
+      margin-top: 0.5rem;
+    }
+
+    .example-btn {
+      background: linear-gradient(135deg, #2d1b69, #1c2128);
+      border: 1px solid #7c5cfc;
+      color: #b4a0ff;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.25s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 500;
+      animation: pulse-border 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(124, 92, 252, 0.2); }
+      50% { box-shadow: 0 0 0 4px rgba(124, 92, 252, 0.1); }
+    }
+
+    .example-btn:hover {
+      border-color: #9b7eff;
+      color: #d4c8ff;
+      background: linear-gradient(135deg, #3d2589, #2d1b69);
+      transform: translateY(-1px);
+    }
+
+    .example-btn .hand-icon {
+      display: inline-block;
+      font-size: 1rem;
+      animation: point 1.5s ease-in-out infinite;
+    }
+
+    @keyframes point {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+    }
+
+    .example-btn .btn-arrow {
+      font-size: 0.7rem;
+      transition: transform 0.2s;
+    }
+
+    .example-btn:hover .btn-arrow {
+      transform: translateX(3px);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #161b22;
+      border: 1px solid rgba(124, 92, 252, 0.25);
+      border-radius: 12px;
+      max-width: 780px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(124, 92, 252, 0.1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #30363d;
+      flex-shrink: 0;
+    }
+
+    .modal-header h3 {
+      color: #f0f6fc;
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .modal-header .cmd-label {
+      color: #7ee787;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      background: #0d1117;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid #30363d;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #f0f6fc;
+      background: #21262d;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-desc {
+      color: #c9d1d9;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #21262d;
+    }
+
+    .modal-terminal {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(126, 231, 135, 0.04), inset 0 0 20px rgba(126, 231, 135, 0.02);
+    }
+
+    .terminal-bar {
+      background: #1c2128;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #f85149; }
+    .terminal-dot.yellow { background: #d29922; }
+    .terminal-dot.green { background: #3fb950; }
+
+    .terminal-title {
+      color: #8b949e;
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+    }
+
+    .terminal-body {
+      padding: 1rem 1.2rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      color: #7ee787;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.5;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .terminal-body .prompt {
+      color: #58a6ff;
+    }
+
+    .terminal-body .comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .terminal-body .cmd-line {
+      color: #f0f6fc;
+      font-weight: 500;
+    }
+
+    .terminal-body .cmd-line .prompt-sign {
+      color: #58a6ff;
+    }
+
+    .terminal-body .output-line {
+      color: #7ee787;
+    }
+
+    .terminal-body .desc-line {
+      color: #8b949e;
+    }
+
+    .terminal-body .success-line {
+      color: #3fb950;
+      font-weight: 600;
+    }
+
+    .terminal-body .warn-line {
+      color: #d29922;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #8b949e;
+      font-size: 1.1rem;
+      display: none;
+    }
+
+    .no-results.visible {
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      color: #484f58;
+      font-size: 0.85rem;
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #21262d;
+    }
+
+    footer a:hover {
+      color: #58a6ff !important;
+      text-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 1rem 0.5rem; }
+      header h1 { font-size: 1.8rem; }
+      .commands-table th, .commands-table td { padding: 0.75rem 1rem; }
+      .commands-table th:nth-child(2), .commands-table td:nth-child(2) { display: none; }
+      .modal-box { max-width: 100%; max-height: 90vh; }
+      .modal-body { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-logo">
+        <span class="docker-icon">&#x1F40B;</span>
+        <div class="title-group">
+          <h1>Docker</h1>
+          <div class="subtitle-line">Comandos básicos explicados para principiantes</div>
+        </div>
+      </div>
+      <div class="header-author">Creado por <strong>Ronald Serrano</strong></div>
+      <div class="search-box">
+        <span class="icon">&#128269;</span>
+        <input type="text" id="searchInput" placeholder="Buscar comando... ej: docker run, pull, logs" autofocus>
+      </div>
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-btn active" data-level="all"><span class="dot" style="background:#8b949e"></span>Todos</button>
+        <button class="filter-btn" data-level="beginner"><span class="dot dot-beginner"></span>Principiante</button>
+        <button class="filter-btn" data-level="intermediate"><span class="dot dot-intermediate"></span>Intermedio</button>
+        <button class="filter-btn" data-level="advanced"><span class="dot dot-advanced"></span>Avanzado</button>
+      </div>
+    </header>
+
+    <div id="categoriesContainer"></div>
+
+    <div class="no-results" id="noResults">
+      No se encontraron comandos con esos filtros.
+    </div>
+
+    <footer>
+      <a href="https://pe.linkedin.com/in/ronaldmiguelsh" target="_blank" style="color:#8b949e;text-decoration:none;">Contáctanos por LinkedIn: Ronald Serrano &#8599;</a> &mdash; Aprende Docker paso a paso
+    </footer>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><span>&#128265;</span> Ejemplo: <span class="cmd-label" id="modalCmd"></span></h3>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-desc" id="modalDesc"></div>
+        <div class="modal-terminal">
+          <div class="terminal-bar">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">Terminal - Docker</span>
+          </div>
+          <div class="terminal-body" id="modalOutput"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const data = [
+      {
+        name: "Información",
+        icon: "\uD83D\uDCBB",
+        commands: [
+          { cmd: "docker version", level: "beginner", desc: "Muestra la <span class='highlight'>versi\u00f3n</span> de Docker instalada en tu equipo. \u00datil para verificar que Docker est\u00e1 correctamente instalado.", example: "Cliente Docker instalado correctamente.\n\n$ docker version\nClient: Docker Engine - Community\n Version:           24.0.7\n API version:       1.43\n Go version:        go1.20.10\n OS/Arch:           windows/amd64\n\nServer: Docker Desktop\n Engine:\n  Version:          24.0.7\n  API version:      1.43\n  Go version:       go1.20.10\n  OS/Arch:          linux/amd64\n\n\u2713 Docker funciona correctamente." },
+          { cmd: "docker info", level: "beginner", desc: "Muestra informaci\u00f3n <span class='highlight'>detallada</span> del sistema Docker: cantidad de contenedores, im\u00e1genes, versi\u00f3n del kernel, etc.", example: "Resumen completo del estado de Docker.\n\n$ docker info\nClient:\n Context:    default\n\nServer:\n Containers: 3\n  Running:   1\n  Paused:    0\n  Stopped:   2\n Images:     8\n Server Version: 24.0.7\n Storage Driver: overlay2\n Logging Driver: json-file\n Operating System: Docker Desktop\n OSType: linux\n Architecture: x86_64\n CPUs: 4\n Total Memory: 7.78GiB\n\n\u2713 Puedes ver cu\u00e1ntos recursos tiene Docker." }
+        ]
+      },
+      {
+        name: "Im\u00e1genes",
+        icon: "\uD83D\uDCE6",
+        commands: [
+          { cmd: "docker images", level: "beginner", desc: "Lista todas las <span class='highlight'>im\u00e1genes locales</span> que has descargado o construido. Una imagen es como una 'plantilla' para crear contenedores.", example: "Todas las im\u00e1genes que tienes descargadas.\n\n$ docker images\nREPOSITORY   TAG       IMAGE ID       CREATED        SIZE\nnginx        latest    605c77e624dd   2 weeks ago    191 MB\nnode         20        5a2df2f1f7a7   3 weeks ago    1.1 GB\npython       3.12      a1b2c3d4e5f6   4 weeks ago    1.0 GB\nredis        latest    f6e5d4c3b2a1   5 weeks ago    117 MB\n\n\u2713 4 im\u00e1genes ocupando ~2.4 GB en total." },
+          { cmd: "docker pull <imagen>", level: "beginner", desc: "Descarga una <span class='highlight'>imagen</span> desde un registro como Docker Hub. Ej: <code>docker pull nginx</code> descarga la imagen oficial de Nginx.", example: "Descargando Nginx desde Docker Hub.\n\n$ docker pull nginx\nUsing default tag: latest\nlatest: Pulling from library/nginx\na5b6c7d8e9f0: Pull complete   (72.5 MB)\nb6c7d8e9f0a1: Pull complete   (1.2 kB)\nc7d8e9f0a1b2: Pull complete   (8.4 kB)\nDigest: sha256:abc123...\nStatus: Downloaded newer image for nginx:latest\n\n\u2713 Imagen descargada: 191 MB" },
+          { cmd: "docker rmi <imagen>", level: "intermediate", desc: "<span class='highlight'>Elimina</span> una imagen local que ya no necesitas. Ayuda a liberar espacio en disco.", example: "Eliminando la imagen de Nginx que ya no usas.\n\n$ docker images\nREPOSITORY   TAG       SIZE\nnginx        latest    191 MB\n\n$ docker rmi nginx:latest\nUntagged: nginx:latest\nUntagged: nginx@sha256:abc123...\nDeleted: sha256:605c77e624dd\n\n$ docker images\nREPOSITORY   TAG       SIZE\n(la imagen de Nginx ya no aparece)\n\n\u2713 Espacio liberado: 191 MB" },
+          { cmd: "docker build -t <tag> .", level: "intermediate", desc: "<span class='highlight'>Construye</span> una imagen propia a partir de un Dockerfile. El punto (.) indica que use el directorio actual.", example: "Construyendo tu primera imagen personalizada.\n\n$ docker build -t mi-app:1.0 .\n[+] Building 15.2s (10/10) FINISHED\n \u2192 [internal] load build definition from Dockerfile\n \u2192 [internal] load .dockerignore\n \u2192 [internal] load metadata for node:20\n \u2192 [1/5] FROM node:20\n \u2192 [2/5] WORKDIR /app\n \u2192 [3/5] COPY package*.json ./\n \u2192 [4/5] RUN npm install\n \u2192 [5/5] COPY . .\n \u2192 exporting to image\n \u2192 naming to docker.io/library/mi-app:1.0\n\n\u2713 Imagen 'mi-app:1.0' creada exitosamente." }
+        ]
+      },
+      {
+        name: "Contenedores",
+        icon: "\uD83D\uDC33",
+        commands: [
+          { cmd: "docker ps", level: "beginner", desc: "Muestra los contenedores que est\u00e1n <span class='highlight'>ejecut\u00e1ndose</span> en este momento.", example: "Solo ves lo que est\u00e1 corriendo AHORA.\n\n$ docker ps\nCONTAINER ID   IMAGE     COMMAND                  CREATED        STATUS        PORTS                  NAMES\na1b2c3d4e5f6   nginx     \"/docker-entrypoint.…\"   2 hours ago    Up 2 hours    0.0.0.0:8080->80/tcp   mi-nginx\n\n\u2713 1 contenedor activo (mi-nginx)." },
+          { cmd: "docker ps -a", level: "beginner", desc: "Muestra <span class='highlight'>todos</span> los contenedores, incluso los que est\u00e1n detenidos. Ideal para ver contenedores que ya terminaron.", example: "Ves TODO el historial, incluso lo detenido.\n\n$ docker ps -a\nCONTAINER ID   IMAGE     COMMAND                  STATUS                     PORTS                  NAMES\na1b2c3d4e5f6   nginx     \"/docker-entrypoint.…\"   Up 2 hours                 0.0.0.0:8080->80/tcp   mi-nginx\nb2c3d4e5f6a1   python    \"python app.py\"          Exited (0) 3 hours ago                            mi-python\nc3d4e5f6a1b2   redis     \"redis-server\"           Exited (0) 12 hours ago                           mi-redis\n\n\u2713 3 contenedores total: 1 activo, 2 detenidos." },
+          { cmd: "docker run <imagen>", level: "beginner", desc: "El comando m\u00e1s usado. <span class='highlight'>Crea y ejecuta</span> un contenedor a partir de una imagen. Si la imagen no est\u00e1 local, la descarga autom\u00e1ticamente.", example: "Creando un contenedor NGINX desde cero.\n\n$ docker run nginx\nUnable to find image 'nginx:latest' locally\nlatest: Pulling from library/nginx\n... (descarga autom\u00e1tica) ...\nStatus: Downloaded newer image for nginx:latest\n/docker-entrypoint.sh: Configuration complete; ready for start up\n\n\u2713 Nginx corriendo. La terminal queda ocupada." },
+          { cmd: "docker run -d <imagen>", level: "beginner", desc: "Ejecuta el contenedor en <span class='highlight'>segundo plano</span> (modo detached). El contenedor sigue corriendo sin bloquear la terminal.", example: "Contenedor en background, terminal libre.\n\n$ docker run -d nginx\na1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6\n\n$ docker ps\nCONTAINER ID   IMAGE   STATUS\n< ID >         nginx   Up 5 seconds\n\n\u2713 Nginx corre en 2\u00ba plano. Puedes seguir usando la terminal." },
+          { cmd: "docker run -it <imagen> sh", level: "beginner", desc: "Ejecuta un contenedor de forma <span class='highlight'>interactiva</span> con una terminal. Ideal para explorar el interior del contenedor.", example: "Dentro del contenedor como si fuera tu PC.\n\n$ docker run -it alpine sh\n/ # ls\nbin    dev    etc    home   lib    media  mnt    opt    proc    root    run    sbin    srv    sys    tmp    usr    var\n/ # uname -a\nLinux abc123 5.15.0-86-generic #96-Ubuntu SMP x86_64 Linux\n/ # echo \"Hola desde Docker!\"\nHola desde Docker!\n/ # exit\n\n\u2713 Exploraste el interior y saliste." },
+          { cmd: "docker run --name <nombre> <imagen>", level: "beginner", desc: "Asigna un <span class='highlight'>nombre personalizado</span> al contenedor para identificarlo f\u00e1cilmente en lugar de usar su ID.", example: "Poner nombre en vez de ID aleatorio.\n\n$ docker run -d --name mi-web nginx\na1b2c3d4e5f6\n\n$ docker ps\nCONTAINER ID   IMAGE   NAMES\na1b2c3d4e5f6   nginx   mi-web\n\n\u2713 Ahora puedes usar 'mi-web' en vez del ID." },
+          { cmd: "docker stop <id o nombre>", level: "beginner", desc: "<span class='highlight'>Detiene</span> un contenedor de forma segura. Env\u00eda una se\u00f1al para que el contenedor se apague correctamente.", example: "Apagando el contenedor gracefulmente.\n\n$ docker ps\nCONTAINER ID   NAMES\na1b2c3d4e5f6   mi-web\n\n$ docker stop mi-web\nmi-web\n\n$ docker ps\nCONTAINER ID   NAMES\n(no hay contenedores activos)\n\n$ docker ps -a\nCONTAINER ID   STATUS\na1b2c3d4e5f6   Exited (0) 5 seconds ago\n\n\u2713 Contenedor detenido, pero a\u00fan existe." },
+          { cmd: "docker start <id o nombre>", level: "beginner", desc: "<span class='highlight'>Inicia</span> un contenedor que estaba detenido. No crea uno nuevo, solo reanuda el existente.", example: "Reactivando un contenedor existente.\n\n$ docker ps -a\nCONTAINER ID   STATUS                     NAMES\na1b2c3d4e5f6   Exited (0) 10 min ago      mi-web\n\n$ docker start mi-web\nmi-web\n\n$ docker ps\nCONTAINER ID   STATUS        NAMES\na1b2c3d4e5f6   Up 3 seconds  mi-web\n\n\u2713 Mismo contenedor, ahora activo otra vez." },
+          { cmd: "docker restart <id o nombre>", level: "beginner", desc: "<span class='highlight'>Reinicia</span> un contenedor (lo detiene y lo vuelve a iniciar).", example: "Reiniciar sin tener que detener/arrancar manual.\n\n$ docker restart mi-web\nmi-web\n\n$ docker ps\nCONTAINER ID   IMAGE   STATUS               NAMES\na1b2c3d4e5f6   nginx   Up 2 seconds         mi-web\n\n\u2713 Contenedor reiniciado, como nuevo." },
+          { cmd: "docker rm <id o nombre>", level: "beginner", desc: "<span class='highlight'>Elimina</span> un contenedor. Debes detenerlo primero si est\u00e1 en ejecuci\u00f3n. Libera espacio.", example: "Borrar contenedor que ya no sirve.\n\n$ docker ps -a\nCONTAINER ID   STATUS                     NAMES\na1b2c3d4e5f6   Exited (0) 1 hour ago      mi-web\n\n$ docker rm mi-web\nmi-web\n\n$ docker ps -a\nCONTAINER ID   NAMES\n(ya no aparece)\n\n\u2713 Contenedor eliminado definitivamente." },
+          { cmd: "docker logs <id o nombre>", level: "intermediate", desc: "Muestra los <span class='highlight'>registros (logs)</span> que ha generado el contenedor. Esencial para depurar errores.", example: "Ver qu\u00e9 pas\u00f3 dentro del contenedor.\n\n$ docker logs mi-web\n/docker-entrypoint.sh: Configuration complete; ready for start up\n192.168.1.5 - - [15/Jan/2024:10:30:05 +0000] \"GET / HTTP/1.1\" 200 612\n192.168.1.5 - - [15/Jan/2024:10:30:06 +0000] \"GET /favicon.ico HTTP/1.1\" 404 555\n\n\u2713 \u00datil para ver errores o peticiones." },
+          { cmd: "docker exec -it <id o nombre> sh", level: "intermediate", desc: "Te <span class='highlight'>conecta</span> a un contenedor que ya est\u00e1 en ejecuci\u00f3n. Como abrir una terminal dentro del contenedor.", example: "Entrar a un contenedor que ya corre.\n\n$ docker exec -it mi-web sh\n/ # ls\ndrwxr-xr-x   2 root root   4096 Mar 12 00:00 bin\ndrwxr-xr-x   2 root root   4096 Mar 12 00:00 boot\n...\n/ # cat /etc/nginx/nginx.conf\nuser  nginx;\nworker_processes  auto;\nevents {}\n...\n/ # exit\n\n\u2713 Entraste, viste archivos y saliste." }
+        ]
+      },
+      {
+        name: "Puertos y Vol\u00famenes",
+        icon: "\uD83D\uDD0C",
+        commands: [
+          { cmd: "docker run -p 8080:80 <imagen>", level: "intermediate", desc: "<span class='highlight'>Mapea puertos</span>: el puerto 80 del contenedor se vuelve accesible a trav\u00e9s del puerto 8080 de tu computadora. As\u00ed puedes acceder desde tu navegador.", example: "Acceder a Nginx desde tu navegador.\n\n$ docker run -d -p 8080:80 --name mi-web nginx\n\nAhora abre tu navegador y visita:\nhttp://localhost:8080\n\nVer\u00e1s la p\u00e1gina de bienvenida de Nginx.\n\n$ docker ps\nCONTAINER ID   PORTS                  NAMES\na1b2c3d4e5f6   0.0.0.0:8080->80/tcp   mi-web\n\n\u2713 Nginx accesible desde tu PC en el puerto 8080." },
+          { cmd: "docker run -v <host>:<cont> <imagen>", level: "intermediate", desc: "<span class='highlight'>Monta un volumen</span>: conecta una carpeta de tu PC con una carpeta del contenedor. Los cambios se reflejan en ambos lados.", example: "Editar archivos del contenedor desde tu PC.\n\n$ docker run -d -p 8080:80 -v C:/mi-sitio:/usr/share/nginx/html nginx\n\n# Editas index.html desde tu PC\n$ echo \"<h1>Hola Docker</h1>\" > C:/mi-sitio/index.html\n\n# El cambio se ve al instante en el contenedor\n$ docker exec mi-web cat /usr/share/nginx/html/index.html\n<h1>Hola Docker</h1>\n\n\u2713 Sin reconstruir la imagen. Los cambios son en vivo." }
+        ]
+      },
+      {
+        name: "Docker Compose",
+        icon: "\u26A1",
+        commands: [
+          { cmd: "docker-compose up", level: "intermediate", desc: "<span class='highlight'>Levanta todos los servicios</span> definidos en tu archivo docker-compose.yml. Crea redes, vol\u00famenes e inicia los contenedores.", example: "Levantar web + base de datos con un solo comando.\n\n$ docker-compose up\n[+] Running 3/3\n \u2713 Network proyecto_default    Created\n \u2713 Volume proyecto_data        Created\n \u2713 Container proyecto-web-1    Started\n \u2713 Container proyecto-db-1     Started\n\n$ docker ps\nCONTAINER ID   IMAGE          NAMES\na1b2c3d4e5f6   nginx:latest   proyecto-web-1\nb2c3d4e5f6a1   postgres:15    proyecto-db-1\n\n\u2713 Todo listo: web + base de datos." },
+          { cmd: "docker-compose up -d", level: "intermediate", desc: "Igual que <code>up</code> pero en <span class='highlight'>segundo plano</span>. La terminal queda libre para seguir trabajando.", example: "Mismos servicios pero sin ocupar la terminal.\n\n$ docker-compose up -d\n[+] Running 2/2\n \u2713 Container proyecto-web-1    Started\n \u2713 Container proyecto-db-1     Started\n\n$ echo \"Todo corriendo en background!\"\nTodo corriendo en background!\n\n\u2713 Terminal libre para otros comandos." },
+          { cmd: "docker-compose down", level: "intermediate", desc: "<span class='highlight'>Detiene y elimina</span> todos los servicios, redes y vol\u00famenes creados por <code>up</code>. Deja el sistema limpio.", example: "Apagar y limpiar todo.\n\n$ docker-compose down\n[+] Running 3/3\n \u2713 Container proyecto-web-1    Stopped\n \u2713 Container proyecto-db-1     Stopped\n \u2713 Network proyecto_default    Removed\n \u2713 Volume proyecto_data        Removed\n\n$ docker ps\nCONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES\n(ya no hay nada)\n\n\u2713 Sistema limpio, como al inicio." },
+          { cmd: "docker-compose logs", level: "advanced", desc: "Muestra los <span class='highlight'>logs de todos los servicios</span> a la vez. Muy \u00fatil cuando varios contenedores trabajan juntos.", example: "Ver logs de todos los servicios combinados.\n\n$ docker-compose logs\nproyecto-web-1  | /docker-entrypoint.sh: Configuration complete; ready for start up\nproyecto-db-1   | LOG:  database system was shut down\nproyecto-db-1   | LOG:  starting PostgreSQL 15.4\nproyecto-db-1   | LOG:  ready to accept connections\nproyecto-web-1  | 192.168.1.5 - - [15/Jan/2024:10:30:05 +0000] \"GET / HTTP/1.1\" 200 612\n\n\u2713 Ves todo en un solo lugar." },
+          { cmd: "docker-compose ps", level: "intermediate", desc: "Lista el <span class='highlight'>estado</span> de los servicios definidos en docker-compose.yml.", example: "Estado de los servicios del proyecto.\n\n$ docker-compose ps\nNAME                   IMAGE          SERVICE   STATUS        PORTS\nproyecto-web-1         nginx:latest   web       running       0.0.0.0:8080->80/tcp\nproyecto-db-1          postgres:15    db        running       5432/tcp\n\n\u2713 Ambos servicios est\u00e1n activos." }
+        ]
+      },
+      {
+        name: "Limpieza",
+        icon: "\u2728",
+        commands: [
+          { cmd: "docker system prune", level: "advanced", desc: "<span class='highlight'>Limpieza general</span>: elimina contenedores detenidos, redes no usadas e im\u00e1genes colgantes. Un buen mantenimiento.", example: "Limpiar lo que no sirve (pero seguro).\n\n$ docker system prune\nWARNING! This will remove:\n  - all stopped containers\n  - all networks not used\n  - all dangling images\n  - all dangling build cache\n\nAre you sure you want to continue? [y/N] y\nDeleted Containers:\nb2c3d4e5f6a1\nc3d4e5f6a1b2\n\nTotal reclaimed space: 245.3 MB\n\n\u2713 Se liber\u00f3 espacio. No afecta contenedores activos." },
+          { cmd: "docker system prune -a", level: "advanced", desc: "Limpieza <span class='highlight'>completa</span>: igual que prune pero adem\u00e1s elimina todas las im\u00e1genes que no est\u00e1n siendo usadas por ning\u00fan contenedor.", example: "Limpieza profunda (libera mucho espacio).\n\n$ docker system prune -a\nWARNING! This will remove:\n  - all stopped containers\n  - all networks not used\n  - all unused images (TODAS las no usadas)\n  - all dangling build cache\n\nAre you sure you want to continue? [y/N] y\nDeleted Images:\nuntagged: nginx:latest\nuntagged: node:20\nuntagged: python:3.12\n\nTotal reclaimed space: 2.1 GB\n\n\u2715 Cuidado: borra im\u00e1genes que podr\u00edas necesitar." },
+          { cmd: "docker container prune", level: "intermediate", desc: "Elimina <span class='highlight'>solo contenedores detenidos</span>. M\u00e1s seguro que system prune porque no toca im\u00e1genes ni redes.", example: "Solo contenedores, sin tocar im\u00e1genes.\n\n$ docker container prune\nWARNING! This will remove all stopped containers.\n\nAre you sure you want to continue? [y/N] y\nDeleted Containers:\nb2c3d4e5f6a1\nc3d4e5f6a1b2\n\nTotal reclaimed space: 12.5 MB\n\n\u2713 M\u00e1s seguro, solo afecta contenedores detenidos." },
+          { cmd: "docker image prune", level: "intermediate", desc: "Elimina <span class='highlight'>im\u00e1genes no usadas</span> (las que no tienen etiqueta y no est\u00e1n siendo utilizadas). Libera espacio en disco.", example: "Limpiar im\u00e1genes hu\u00e9rfanas (dangling).\n\n$ docker image prune\nWARNING! This will remove all dangling images.\n\nAre you sure you want to continue? [y/N] y\nDeleted Images:\ndeleted: sha256:abc123...\ndeleted: sha256:def456...\n\nTotal reclaimed space: 350.2 MB\n\n\u2713 Im\u00e1genes sin etiqueta (<none>) eliminadas." }
+        ]
+      }
+    ];
+
+    function getPracticalTip(cmd) {
+      const tips = {
+        'docker version': 'Confirma que Docker est\u00e1 instalado y funcionando antes de empezar.',
+        'docker info': 'Revisa cu\u00e1ntos contenedores e im\u00e1genes tienes, ideal para diagnosticar.',
+        'docker images': 'Revisa esta lista antes de crear un contenedor para saber qu\u00e9 im\u00e1genes tienes.',
+        'docker pull': 'Descarga la imagen ANTES de usarla, ahorra tiempo al hacer docker run despu\u00e9s.',
+        'docker rmi': 'Libera espacio en disco eliminando im\u00e1genes que ya no usas.',
+        'docker build': 'Crea tu propia imagen personalizada con tu c\u00f3digo y dependencias.',
+        'docker ps': 'Verifica qu\u00e9 contenedores est\u00e1n activos en este momento.',
+        'docker ps -a': 'Encuentra contenedores detenidos que a\u00fan ocupan espacio.',
+        'docker run': 'El comando m\u00e1s importante: crea y arranca un contenedor desde una imagen.',
+        'docker run -d': 'Ejecuta contenedores en background para seguir usando la terminal.',
+        'docker run -it': 'Explora el interior de un contenedor como si fuera una PC remota.',
+        'docker run --name': 'Poner nombre a los contenedores evita tener que recordar IDs largos.',
+        'docker stop': 'Detiene un contenedor gracefully, permitiendo que guarde datos.',
+        'docker start': 'Reanuda un contenedor existente sin crear uno nuevo.',
+        'docker restart': 'Reinicia un contenedor sin tener que detenerlo y arrancarlo manualmente.',
+        'docker rm': 'Elimina contenedores que ya no necesitas para liberar espacio.',
+        'docker logs': 'El primer lugar donde mirar cuando algo falla en tu contenedor.',
+        'docker exec -it': 'Entra a un contenedor activo para hacer debugging o ver archivos.',
+        'docker run -p': 'Sin esto, no podr\u00e1s acceder desde el navegador a tu contenedor.',
+        'docker run -v': 'Persiste datos y edita archivos del contenedor desde tu PC.',
+        'docker-compose up': 'Levanta todo tu proyecto (web + BD + etc) con un solo comando.',
+        'docker-compose up -d': 'Ideal para entornos de desarrollo: todo corriendo sin ocupar terminal.',
+        'docker-compose down': 'Limpieza total del proyecto: contenedores, redes y vol\u00famenes.',
+        'docker-compose logs': 'Depura problemas viendo los logs de todos los servicios juntos.',
+        'docker-compose ps': 'Ver el estado de todos los servicios de tu proyecto r\u00e1pidamente.',
+        'docker system prune': 'Mantenimiento mensual: libera espacio sin afectar contenedores activos.',
+        'docker system prune -a': 'Solo cuando necesites recuperar mucho espacio, pero con cuidado.',
+        'docker container prune': 'La opci\u00f3n m\u00e1s segura para limpiar solo contenedores detenidos.',
+        'docker image prune': 'Limpia im\u00e1genes hu\u00e9rfanas que se acumulan con el tiempo.'
+      };
+      return tips[cmd] || 'Practica este comando para dominar Docker.';
+    }
+
+    let currentLevel = 'all';
+    let activeCategory = null;
+
+    function collapseAllCategories() {
+      document.querySelectorAll('.category').forEach(cat => {
+        cat.classList.add('collapsed');
+      });
+    }
+
+    function formatExample(text) {
+      return text.split('\n').map(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('$ ')) {
+          const rest = line.replace('$ ', '');
+          return `<span class="cmd-line"><span class="prompt-sign">$</span> ${rest}</span>`;
+        }
+        if (trimmed.startsWith('\u2713')) {
+          return `<span class="success-line">${line}</span>`;
+        }
+        if (trimmed.startsWith('\u2715')) {
+          return `<span class="warn-line">${line}</span>`;
+        }
+        if (trimmed.startsWith('WARNING!') || trimmed.startsWith('Are you sure')) {
+          return `<span class="warn-line">${line}</span>`;
+        }
+        if (trimmed === '' || trimmed.startsWith('#')) {
+          return line;
+        }
+        return `<span class="output-line">${line}</span>`;
+      }).join('\n');
+    }
+
+    function openModal(cmd, desc, example, catEl) {
+      document.getElementById('modalCmd').textContent = cmd;
+      document.getElementById('modalDesc').innerHTML = desc;
+      document.getElementById('modalOutput').innerHTML = formatExample(example);
+      document.getElementById('modalOverlay').classList.add('visible');
+      document.body.style.overflow = 'hidden';
+      activeCategory = catEl;
+      collapseAllCategories();
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('visible');
+      document.body.style.overflow = '';
+      if (activeCategory) {
+        collapseAllCategories();
+        activeCategory.classList.remove('collapsed');
+        activeCategory = null;
+      }
+    }
+
+    function render() {
+      const container = document.getElementById('categoriesContainer');
+      container.innerHTML = '';
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      let anyVisible = false;
+
+      data.forEach((cat) => {
+        const filtered = cat.commands.filter(c => {
+          if (currentLevel !== 'all' && c.level !== currentLevel) return false;
+          const fullText = c.cmd.toLowerCase() + ' ' + c.desc.toLowerCase();
+          return fullText.includes(query);
+        });
+
+        if (query && filtered.length === 0) return;
+        anyVisible = true;
+
+        const catDiv = document.createElement('div');
+        catDiv.className = 'category';
+        if (query) catDiv.classList.remove('collapsed');
+        else catDiv.classList.add('collapsed');
+
+        const levelLabel = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' };
+
+        catDiv.innerHTML = `
+          <div class="category-header">
+            <h2><span class="icon-glow">${cat.icon}</span> ${cat.name} <span class="badge">${filtered.length}</span></h2>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <table class="commands-table">
+            <thead>
+              <tr>
+                <th style="width:38%">Comando</th>
+                <th>Explicaci&oacute;n</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered.map(c => `
+                <tr>
+                  <td>
+                    <div class="command-cell">
+                      <code class="command-code">${c.cmd.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>
+                      <span class="level-badge level-${c.level}">${levelLabel[c.level]}</span>
+                      <button class="copy-btn" data-cmd="${c.cmd.replace(/</g, '&lt;').replace(/>/g, '&gt;')}" title="Copiar comando">&#128203;</button>
+                    </div>
+                    <div class="action-btns">
+                      <button class="example-btn" data-cmd="${c.cmd.replace(/</g, '&lt;').replace(/>/g, '&gt;')}" data-desc='${c.desc.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/'/g, "\\'").replace(/"/g, '&quot;')}'><span class="hand-icon">&#128070;</span> Ver resultados del comando <span class="btn-arrow">&#10140;</span></button>
+                    </div>
+                  </td>
+                  <td class="command-desc"><span class="desc-icon">&#9654;</span><span class="desc-head">&#9679; Explicaci&oacute;n</span><span class="desc-text">${c.desc}</span><br><span style="display:inline-block;margin-top:0.4rem;font-size:0.78rem;color:#8b949e;background:#0d1117;padding:0.25rem 0.6rem;border-radius:4px;border:1px solid #21262d;">&#128161; ${getPracticalTip(c.cmd)}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        container.appendChild(catDiv);
+      });
+
+      document.getElementById('noResults').classList.toggle('visible', !anyVisible);
+    }
+
+    // Toggle collapse on header click (accordion: solo una sección abierta)
+    document.addEventListener('click', e => {
+      const header = e.target.closest('.category-header');
+      if (header) {
+        const cat = header.closest('.category');
+        const wasCollapsed = cat.classList.contains('collapsed');
+        document.querySelectorAll('.category').forEach(c => c.classList.add('collapsed'));
+        if (wasCollapsed) cat.classList.remove('collapsed');
+        return;
+      }
+
+      // Copy button
+      const copyBtn = e.target.closest('.copy-btn');
+      if (copyBtn) {
+        const text = copyBtn.getAttribute('data-cmd');
+        navigator.clipboard.writeText(text).then(() => {
+          copyBtn.classList.add('copied');
+          copyBtn.textContent = '\u2713';
+          setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '&#128203;';
+          }, 2000);
+        }).catch(() => {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          copyBtn.classList.add('copied');
+          copyBtn.textContent = '\u2713';
+          setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '&#128203;';
+          }, 2000);
+        });
+        return;
+      }
+
+      // Example button - open modal
+      const exampleBtn = e.target.closest('.example-btn');
+      if (exampleBtn) {
+        const cmd = exampleBtn.getAttribute('data-cmd');
+        const desc = exampleBtn.getAttribute('data-desc');
+        const catEl = exampleBtn.closest('.category');
+        // Find the actual example from data
+        let example = '';
+        for (const cat of data) {
+          for (const c of cat.commands) {
+            if (c.cmd === cmd) {
+              example = c.example || 'Ejemplo no disponible.';
+              break;
+            }
+          }
+          if (example) break;
+        }
+        openModal(cmd, desc, example, catEl);
+        return;
+      }
+    });
+
+    // Modal close
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('modalOverlay').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Search with debounce
+    let debounceTimer;
+    document.getElementById('searchInput').addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(render, 200);
+    });
+
+    // Difficulty filter
+    document.getElementById('filterBar').addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLevel = btn.getAttribute('data-level');
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
