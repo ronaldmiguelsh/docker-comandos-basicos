@@ -1,60 +1,60 @@
-# Comandos Básicos de Docker
+# Referencia rápida de Docker
 
-## Información
+Abre `index.html` para consultar explicaciones detalladas, resultados y advertencias.
 
-| Comando | Descripción |
+## Primeros pasos e imágenes
+
+| Comando | Uso |
 |---|---|
-| `docker version` | Muestra la versión de Docker |
-| `docker info` | Información del sistema Docker |
-
-## Imágenes
-
-| Comando | Descripción |
-|---|---|
-| `docker images` | Lista imágenes locales |
-| `docker pull <imagen>` | Descarga una imagen desde un registro (ej. Docker Hub) |
-| `docker rmi <imagen>` | Elimina una imagen local |
-| `docker build -t <tag> .` | Construye una imagen desde un Dockerfile |
+| `docker version` | Comprueba el cliente y el motor. |
+| `docker info` | Resume el estado del entorno. |
+| `docker image ls` | Lista imágenes locales. |
+| `docker pull nginx:alpine` | Descarga una imagen etiquetada. |
+| `docker build -t mi-app:1.0 .` | Construye una imagen desde un Dockerfile. |
 
 ## Contenedores
 
-| Comando | Descripción |
+| Comando | Uso |
 |---|---|
-| `docker ps` | Lista contenedores en ejecución |
-| `docker ps -a` | Lista todos los contenedores (activos y detenidos) |
-| `docker run <imagen>` | Crea y ejecuta un contenedor |
-| `docker run -d <imagen>` | Ejecuta un contenedor en segundo plano (detached) |
-| `docker run -it <imagen> sh` | Ejecuta un contenedor interactivo con terminal |
-| `docker run --name <nombre> <imagen>` | Asigna un nombre personalizado al contenedor |
-| `docker stop <id o nombre>` | Detiene un contenedor |
-| `docker start <id o nombre>` | Inicia un contenedor detenido |
-| `docker restart <id o nombre>` | Reinicia un contenedor |
-| `docker rm <id o nombre>` | Elimina un contenedor |
-| `docker logs <id o nombre>` | Muestra los logs de un contenedor |
-| `docker exec -it <id o nombre> sh` | Accede a un contenedor en ejecución de forma interactiva |
+| `docker run -d --name web nginx:alpine` | Ejecuta Nginx en segundo plano. |
+| `docker run --rm -it alpine sh` | Abre una terminal temporal. |
+| `docker ps -a` | Lista todos los contenedores. |
+| `docker logs -f --tail 50 web` | Sigue los registros. |
+| `docker exec -it web sh` | Abre un shell en un contenedor activo. |
+| `docker stop web` | Detiene un contenedor ordenadamente. |
+| `docker start web` | Inicia un contenedor detenido. |
+| `docker rm web` | Elimina un contenedor detenido. |
 
-## Puertos y Volúmenes
+## Redes y datos
 
-| Comando | Descripción |
+| Comando | Uso |
 |---|---|
-| `docker run -p 8080:80 <imagen>` | Mapea el puerto 80 del contenedor al puerto 8080 del host |
-| `docker run -v <host>:<contenedor> <imagen>` | Monta un volumen del host en el contenedor |
+| `docker run -d -p 8080:80 --name web nginx:alpine` | Publica Nginx en `localhost:8080`. |
+| `docker port web` | Consulta puertos publicados. |
+| `docker network create mi-red` | Crea una red. |
+| `docker volume create datos-app` | Crea un volumen persistente. |
+| `docker volume ls` | Lista volúmenes. |
 
 ## Docker Compose
 
-| Comando | Descripción |
+La sintaxis actual usa `docker compose` con un espacio.
+
+| Comando | Uso |
 |---|---|
-| `docker-compose up` | Levanta los servicios definidos en `docker-compose.yml` |
-| `docker-compose up -d` | Levanta los servicios en segundo plano |
-| `docker-compose down` | Detiene y elimina los servicios |
-| `docker-compose logs` | Muestra los logs de todos los servicios |
-| `docker-compose ps` | Lista los servicios activos |
+| `docker compose up -d --build` | Construye e inicia servicios. |
+| `docker compose ps` | Revisa el estado del proyecto. |
+| `docker compose logs -f --tail 50` | Sigue registros de servicios. |
+| `docker compose exec web sh` | Ejecuta un shell en el servicio `web`. |
+| `docker compose down` | Elimina contenedores y redes; conserva volúmenes con nombre. |
 
 ## Limpieza
 
-| Comando | Descripción |
+> **Precaución:** revisa los recursos antes de confirmar una eliminación.
+
+| Comando | Uso |
 |---|---|
-| `docker system prune` | Elimina contenedores, redes e imágenes no usados |
-| `docker system prune -a` | Elimina todo lo no usado, incluyendo imágenes sin etiquetar |
-| `docker container prune` | Elimina todos los contenedores detenidos |
-| `docker image prune` | Elimina imágenes no usadas |
+| `docker system df -v` | Analiza el uso de disco. |
+| `docker container prune` | Elimina contenedores detenidos. |
+| `docker image prune` | Elimina imágenes colgantes. |
+| `docker volume prune` | Elimina volúmenes sin uso. |
+| `docker system prune` | Limpia varios recursos no utilizados. |

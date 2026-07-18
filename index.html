@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Guía práctica e interactiva para aprender los comandos esenciales de Docker paso a paso."
+    />
+    <meta name="theme-color" content="#07111f" />
+    <title>Docker desde cero | Guía práctica de comandos</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="data.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header">
+      <a class="brand" href="#inicio" aria-label="Docker desde cero, ir al inicio">
+        <span class="brand-mark" aria-hidden="true">D</span>
+        <span><strong>Docker</strong><small>desde cero</small></span>
+      </a>
+      <nav class="top-nav" aria-label="Navegación principal">
+        <a href="#ruta">Ruta</a>
+        <a href="#comandos">Comandos</a>
+        <a href="#practica">Práctica</a>
+      </nav>
+      <button class="icon-button" id="themeToggle" type="button" aria-label="Cambiar tema">
+        <span aria-hidden="true">☀</span>
+      </button>
+    </header>
+
+    <main id="contenido">
+      <section class="hero" id="inicio">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> Guía interactiva en español</p>
+          <h1>Entiende Docker.<br /><em>Comando a comando.</em></h1>
+          <p class="hero-lead">
+            Aprende qué hace cada comando, cuándo usarlo y qué resultado esperar.
+            Sin memorizar a ciegas y sin instalar nada para comenzar.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#ruta">Comenzar la ruta <span aria-hidden="true">↓</span></a>
+            <a class="button button-secondary" href="#comandos">Explorar comandos</a>
+          </div>
+          <div class="hero-metrics" aria-label="Resumen de la guía">
+            <div><strong id="commandCount">0</strong><span>comandos</span></div>
+            <div><strong>7</strong><span>categorías</span></div>
+            <div><strong>100%</strong><span>práctica</span></div>
+          </div>
+        </div>
+
+        <div class="terminal-card" aria-label="Ejemplo de terminal Docker">
+          <div class="terminal-bar">
+            <span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>terminal</span>
+            <span>bash</span>
+          </div>
+          <div class="terminal-body" aria-hidden="true">
+            <p class="terminal-comment"># Tu primer contenedor</p>
+            <p><b>$</b> docker run -d -p 8080:80 --name mi-web nginx</p>
+            <p class="terminal-muted">Unable to find image 'nginx:latest' locally</p>
+            <p class="terminal-accent">latest: Pull complete</p>
+            <p class="terminal-output">6f8d2b914a1e...</p>
+            <br />
+            <p><b>$</b> docker ps</p>
+            <p class="terminal-heading">CONTAINER ID&nbsp;&nbsp; IMAGE&nbsp;&nbsp; STATUS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PORTS</p>
+            <p class="terminal-accent">6f8d2b914a1e&nbsp;&nbsp; nginx&nbsp;&nbsp; Up 4 seconds&nbsp;&nbsp; 0.0.0.0:8080→80</p>
+            <p class="terminal-cursor"><b>$</b> <i></i></p>
+          </div>
+          <div class="terminal-note"><span>✓</span> Nginx ya está disponible en <code>localhost:8080</code></div>
+        </div>
+      </section>
+
+      <section class="section learning-section" id="ruta">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow"><span></span> Ruta recomendada</p>
+            <h2>Aprende en el orden correcto</h2>
+          </div>
+          <p>Avanza desde los conceptos esenciales hasta trabajar con varios servicios.</p>
+        </div>
+        <div class="learning-grid" id="learningPath"></div>
+      </section>
+
+      <section class="section explorer-section" id="comandos">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow"><span></span> Referencia práctica</p>
+            <h2>Encuentra el comando que necesitas</h2>
+          </div>
+          <p>Copia un ejemplo listo para usar o abre su explicación completa.</p>
+        </div>
+
+        <div class="explorer-toolbar">
+          <label class="search-field" for="searchInput">
+            <span aria-hidden="true">⌕</span>
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="Buscar: logs, puertos, imágenes..."
+              autocomplete="off"
+            />
+            <kbd>/</kbd>
+          </label>
+          <div class="filter-group" id="levelFilters" aria-label="Filtrar por nivel">
+            <button class="filter active" type="button" data-level="all">Todos</button>
+            <button class="filter" type="button" data-level="beginner">Inicial</button>
+            <button class="filter" type="button" data-level="intermediate">Intermedio</button>
+            <button class="filter" type="button" data-level="advanced">Avanzado</button>
+          </div>
+        </div>
+
+        <div class="category-tabs" id="categoryFilters" aria-label="Filtrar por categoría"></div>
+        <p class="result-summary" id="resultSummary" aria-live="polite"></p>
+        <div class="command-grid" id="commandGrid"></div>
+        <div class="empty-state" id="emptyState" hidden>
+          <span aria-hidden="true">⌕</span>
+          <h3>No encontramos ese comando</h3>
+          <p>Prueba con una acción como “crear”, “detener”, “logs” o “volumen”.</p>
+          <button class="button button-secondary" id="clearFilters" type="button">Limpiar filtros</button>
+        </div>
+      </section>
+
+      <section class="section practice-section" id="practica">
+        <div class="practice-copy">
+          <p class="eyebrow"><span></span> Mini laboratorio</p>
+          <h2>De cero a una web en 5 minutos</h2>
+          <p>
+            Ejecuta esta secuencia para descargar Nginx, publicar una página y limpiar el entorno.
+            Marca cada paso a medida que avances.
+          </p>
+          <div class="progress-label">
+            <span>Tu progreso</span><strong id="labProgressText">0 de 4</strong>
+          </div>
+          <div class="progress-track"><span id="labProgressBar"></span></div>
+          <button class="text-button" id="resetLab" type="button">Reiniciar laboratorio</button>
+        </div>
+        <ol class="lab-steps" id="labSteps">
+          <li>
+            <label><input type="checkbox" data-step="0" /><span><b>1</b><strong>Comprueba Docker</strong></span></label>
+            <button class="copy-code" type="button" data-copy="docker version"><code>docker version</code><span>Copiar</span></button>
+          </li>
+          <li>
+            <label><input type="checkbox" data-step="1" /><span><b>2</b><strong>Crea el contenedor</strong></span></label>
+            <button class="copy-code" type="button" data-copy="docker run -d -p 8080:80 --name mi-web nginx"><code>docker run -d -p 8080:80 --name mi-web nginx</code><span>Copiar</span></button>
+          </li>
+          <li>
+            <label><input type="checkbox" data-step="2" /><span><b>3</b><strong>Revisa que esté activo</strong></span></label>
+            <button class="copy-code" type="button" data-copy="docker ps"><code>docker ps</code><span>Copiar</span></button>
+          </li>
+          <li>
+            <label><input type="checkbox" data-step="3" /><span><b>4</b><strong>Detén y elimina</strong></span></label>
+            <button class="copy-code" type="button" data-copy="docker rm -f mi-web"><code>docker rm -f mi-web</code><span>Copiar</span></button>
+          </li>
+        </ol>
+      </section>
+
+      <aside class="safety-note">
+        <span class="safety-icon" aria-hidden="true">!</span>
+        <div>
+          <strong>Antes de ejecutar un comando destructivo</strong>
+          <p>Revisa siempre los recursos afectados. Los comandos marcados como “Precaución” pueden eliminar contenedores, imágenes o datos.</p>
+        </div>
+        <a href="#comandos" data-safety-filter>Ver comandos de limpieza</a>
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand footer-brand">
+        <span class="brand-mark" aria-hidden="true">D</span>
+        <span><strong>Docker desde cero</strong><small>Una guía práctica hecha para aprender.</small></span>
+      </div>
+      <p>Elaborado por <strong>Ronald Serrano</strong> · <a href="https://www.linkedin.com/in/ronaldmiguelsh/" target="_blank" rel="noreferrer">LinkedIn ↗</a></p>
+      <a href="#inicio">Volver arriba ↑</a>
+    </footer>
+
+    <dialog class="command-dialog" id="commandDialog" aria-labelledby="dialogTitle">
+      <div class="dialog-header">
+        <div>
+          <span class="dialog-category" id="dialogCategory"></span>
+          <h2 id="dialogTitle"></h2>
+        </div>
+        <button class="icon-button dialog-close" id="dialogClose" type="button" aria-label="Cerrar explicación">×</button>
+      </div>
+      <div class="dialog-content">
+        <p class="dialog-description" id="dialogDescription"></p>
+        <div class="dialog-code-wrap">
+          <div><span>Ejemplo listo para usar</span><button id="dialogCopy" type="button">Copiar comando</button></div>
+          <pre><code id="dialogCode"></code></pre>
+        </div>
+        <div class="detail-grid">
+          <section><h3>Cómo leerlo</h3><ul id="dialogBreakdown"></ul></section>
+          <section><h3>Qué esperar</h3><p id="dialogResult"></p></section>
+        </div>
+        <aside class="dialog-warning" id="dialogWarning" hidden><strong>Precaución</strong><p></p></aside>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">Comando copiado</div>
+  </body>
+</html>
